@@ -17,7 +17,9 @@ package org.jboss.hal.client.bootstrap;
 
 import javax.inject.Inject;
 
+import org.jboss.elemento.Elements;
 import org.jboss.hal.client.bootstrap.endpoint.EndpointManager;
+import org.jboss.hal.client.bootstrap.endpoint.RbacProviderFailed;
 import org.jboss.hal.client.bootstrap.tasks.BootstrapTasks;
 import org.jboss.hal.client.bootstrap.tasks.InitializationTasks;
 import org.jboss.hal.client.bootstrap.tasks.InitializedTask;
@@ -33,6 +35,7 @@ import com.gwtplatform.mvp.client.proxy.PlaceManager;
 
 import elemental2.dom.Event;
 
+import static elemental2.dom.DomGlobal.document;
 import static elemental2.dom.DomGlobal.window;
 
 public class HalBootstrapper implements Bootstrapper {
@@ -84,6 +87,11 @@ public class HalBootstrapper implements Bootstrapper {
                     .catch_(error -> {
                         logger.error("Bootstrap error: {}", error);
                         LoadingPanel.get().off();
+                        if (error.equals("Dispatcher error: Authentication required.")) {
+                            Elements.removeChildrenFrom(document.body);
+                            document.body.appendChild(
+                                    new RbacProviderFailed("Status 403 - Forbidden").element());
+                        }
                         return null;
                     });
         });
